@@ -1,7 +1,9 @@
-// SPDX-License-Identifier: MIT
+/**
+ *Submitted for verification at BscScan.com on 2022-09-30
+*/
 
-/*
-Diamond Miner
+/**'                                   
+Bolt Fund - Reward Pool
 */
 
 library SafeMath {
@@ -282,26 +284,26 @@ contract Ownable is Context {
     }
 }
 
-contract BoltPool is Context, Ownable {
+contract BoltFund is Context, Ownable {
     using SafeMath for uint256;
 
-    uint256 private EGGS_TO_HATCH_1MINERS = 1080000;//for final version should be seconds in a day
+    uint256 private BOLTS_TO_HATCH_1MINERS = 1080000;//for final version should be seconds in a day
     uint256 private PSN = 10000;
     uint256 private PSNH = 5000;
-    uint256 private devFeeVal = 4;
+    uint256 private devFeeVal = 3;
     bool private initialized = false;
     address payable private recAdd;
     mapping (address => uint256) private hatcheryMiners;
-    mapping (address => uint256) private claimedEggs;
+    mapping (address => uint256) private claimedbolts;
     mapping (address => uint256) private lastHatch;
     mapping (address => address) private referrals;
-    uint256 private marketEggs;
+    uint256 private marketbolts;
     
     constructor() {
         recAdd = payable(msg.sender);
     }
     
-    function hatchEggs(address ref) public {
+    function hatchbolts(address ref) public {
         require(initialized);
         
         if(ref == msg.sender) {
@@ -312,61 +314,61 @@ contract BoltPool is Context, Ownable {
             referrals[msg.sender] = ref;
         }
         
-        uint256 eggsUsed = getMyEggs(msg.sender);
-        uint256 newMiners = SafeMath.div(eggsUsed,EGGS_TO_HATCH_1MINERS);
+        uint256 boltsUsed = getMybolts(msg.sender);
+        uint256 newMiners = SafeMath.div(boltsUsed,BOLTS_TO_HATCH_1MINERS);
         hatcheryMiners[msg.sender] = SafeMath.add(hatcheryMiners[msg.sender],newMiners);
-        claimedEggs[msg.sender] = 0;
+        claimedbolts[msg.sender] = 0;
         lastHatch[msg.sender] = block.timestamp;
         
-        //send referral eggs
-        claimedEggs[referrals[msg.sender]] = SafeMath.add(claimedEggs[referrals[msg.sender]],SafeMath.div(eggsUsed,8));
+        //send referral bolts
+        claimedbolts[referrals[msg.sender]] = SafeMath.add(claimedbolts[referrals[msg.sender]],SafeMath.div(boltsUsed,8));
         
         //boost market to nerf miners hoarding
-        marketEggs=SafeMath.add(marketEggs,SafeMath.div(eggsUsed,5));
+        marketbolts=SafeMath.add(marketbolts,SafeMath.div(boltsUsed,5));
     }
     
-    function sellEggs() public {
+    function sellbolts() public {
         require(initialized);
-        uint256 hasEggs = getMyEggs(msg.sender);
-        uint256 eggValue = calculateEggSell(hasEggs);
-        uint256 fee = devFee(eggValue);
-        claimedEggs[msg.sender] = 0;
+        uint256 hasbolts = getMybolts(msg.sender);
+        uint256 boltValue = calculateboltsell(hasbolts);
+        uint256 fee = devFee(boltValue);
+        claimedbolts[msg.sender] = 0;
         lastHatch[msg.sender] = block.timestamp;
-        marketEggs = SafeMath.add(marketEggs,hasEggs);
+        marketbolts = SafeMath.add(marketbolts,hasbolts);
         recAdd.transfer(fee);
-        payable (msg.sender).transfer(SafeMath.sub(eggValue,fee));
+        payable (msg.sender).transfer(SafeMath.sub(boltValue,fee));
     }
     
-    function beanRewards(address adr) public view returns(uint256) {
-        uint256 hasEggs = getMyEggs(adr);
-        uint256 eggValue = calculateEggSell(hasEggs);
-        return eggValue;
+    function boltRewards(address adr) public view returns(uint256) {
+        uint256 hasbolts = getMybolts(adr);
+        uint256 boltValue = calculateboltsell(hasbolts);
+        return boltValue;
     }
     
-    function buyEggs(address ref) public payable {
+    function buybolts(address ref) public payable {
         require(initialized);
-        uint256 eggsBought = calculateEggBuy(msg.value,SafeMath.sub(address(this).balance,msg.value));
-        eggsBought = SafeMath.sub(eggsBought,devFee(eggsBought));
+        uint256 boltsBought = calculateboltBuy(msg.value,SafeMath.sub(address(this).balance,msg.value));
+        boltsBought = SafeMath.sub(boltsBought,devFee(boltsBought));
         uint256 fee = devFee(msg.value);
         recAdd.transfer(fee);
-        claimedEggs[msg.sender] = SafeMath.add(claimedEggs[msg.sender],eggsBought);
-        hatchEggs(ref);
+        claimedbolts[msg.sender] = SafeMath.add(claimedbolts[msg.sender],boltsBought);
+        hatchbolts(ref);
     }
     
     function calculateTrade(uint256 rt,uint256 rs, uint256 bs) private view returns(uint256) {
         return SafeMath.div(SafeMath.mul(PSN,bs),SafeMath.add(PSNH,SafeMath.div(SafeMath.add(SafeMath.mul(PSN,rs),SafeMath.mul(PSNH,rt)),rt)));
     }
     
-    function calculateEggSell(uint256 eggs) public view returns(uint256) {
-        return calculateTrade(eggs,marketEggs,address(this).balance);
+    function calculateboltsell(uint256 bolts) public view returns(uint256) {
+        return calculateTrade(bolts,marketbolts,address(this).balance);
     }
     
-    function calculateEggBuy(uint256 eth,uint256 contractBalance) public view returns(uint256) {
-        return calculateTrade(eth,contractBalance,marketEggs);
+    function calculateboltBuy(uint256 eth,uint256 contractBalance) public view returns(uint256) {
+        return calculateTrade(eth,contractBalance,marketbolts);
     }
     
-    function calculateEggBuySimple(uint256 eth) public view returns(uint256) {
-        return calculateEggBuy(eth,address(this).balance);
+    function calculateboltBuySimple(uint256 eth) public view returns(uint256) {
+        return calculateboltBuy(eth,address(this).balance);
     }
     
     function devFee(uint256 amount) private view returns(uint256) {
@@ -374,9 +376,9 @@ contract BoltPool is Context, Ownable {
     }
     
     function seedMarket() public payable onlyOwner {
-        require(marketEggs == 0);
+        require(marketbolts == 0);
         initialized = true;
-        marketEggs = 108000000000;
+        marketbolts = 108000000000;
     }
     
     function getBalance() public view returns(uint256) {
@@ -387,12 +389,12 @@ contract BoltPool is Context, Ownable {
         return hatcheryMiners[adr];
     }
     
-    function getMyEggs(address adr) public view returns(uint256) {
-        return SafeMath.add(claimedEggs[adr],getEggsSinceLastHatch(adr));
+    function getMybolts(address adr) public view returns(uint256) {
+        return SafeMath.add(claimedbolts[adr],getboltsSinceLastHatch(adr));
     }
     
-    function getEggsSinceLastHatch(address adr) public view returns(uint256) {
-        uint256 secondsPassed=min(EGGS_TO_HATCH_1MINERS,SafeMath.sub(block.timestamp,lastHatch[adr]));
+    function getboltsSinceLastHatch(address adr) public view returns(uint256) {
+        uint256 secondsPassed=min(BOLTS_TO_HATCH_1MINERS,SafeMath.sub(block.timestamp,lastHatch[adr]));
         return SafeMath.mul(secondsPassed,hatcheryMiners[adr]);
     }
     
